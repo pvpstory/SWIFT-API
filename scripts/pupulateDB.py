@@ -1,7 +1,6 @@
 import sqlite3
 import csv
-
-con = sqlite3.connect("SWIFT-CODES.db")
+con = sqlite3.connect("../SWIFT-CODES.db")
 cur = con.cursor()
 cur.execute("DROP TABLE IF EXISTS SWIFT_CODES")
 cur.execute(""" CREATE TABLE IF NOT EXISTS  SWIFT_CODES(
@@ -31,6 +30,9 @@ with open("SWIFT-CODES.csv", newline="") as csvfile:
                 row["COUNTRY NAME"],
                 isheadquarter)
         )
+con.commit()
+
+
 
 
 
