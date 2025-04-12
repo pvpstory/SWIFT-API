@@ -1,63 +1,44 @@
-from fastapi import FastAPI
-import sqlite3
+from fastapi import FastAPI, Depends
+import aiosqlite
+
 app = FastAPI()
-con = sqlite3.connect("SWIFT-CODES.db")
-cur = con.cursor()
 
 
-
-@app.get("/v1/swift-codes/{swift-code}")
-async def swift_codes(swift_code: str):
-
-    cur.execute("SELECT * FROM SWIFT_CODES WHERE SWIFT_CODE = ?", (swift_code,))
-
-    results = cur.fetchall()
-    countryISO2 = results[0][0]
-    swift_code = results[0][1]
-    Name = results[0][2]
-    address = results[0][3]
-    country_name = results[0][4]
-    is_headquarter = results[0][5]
-
-    main = {
-            "address": address,
-            "bankName": Name,
-            "countryISO2": countryISO2,
-            "countryName": country_name,
-            "isHeadquarter": True,
-            "swiftCode": swift_code,
-        }
-    print(is_headquarter)
-    if is_headquarter == "0":
-        main["isHeadquarter"] = False
-        return main
-
-    branches_code = swift_code[:-3] + "%"
-    res = cur.execute("SELECT * FROM SWIFT_CODES WHERE SWIFT_CODE LIKE ? AND ISHEADQUARTER != 1", (branches_code,))
-    results = cur.fetchall()
-    branches = []
-    for i,bank in enumerate(results):
-
-        countryISO2 = results[i][0]
-        swift_code = results[i][1]
-        Name = results[i][2]
-        address = results[i][3]
-        new_bank = {
-            "address": address,
-            "bankName": Name,
-            "countryISO2": countryISO2,
-            "isHeadquarter": False,
-            "swiftCode": swift_code,
-
-        }
-        branches.append(new_bank)
-    main["branches"] = branches
-    return main
+async def get_db_connection():
+    async with aiosqlite.connect("SWIFT-CODES.db") as db:
+        yield db
 
 
+def format_bank_data(bank_row: aiosqlite.Row, is_headquarter: bool) -> dict:
+    return {
+        "address": bank_row[3],
+        "bankName": bank_row[2],
+        "countryISO2": bank_row[0],
+        "countryName": bank_row[4],
+        "isHeadquarter": is_headquarter,
+        "swiftCode": bank_row[1],
+    }
 
 
+@app.get("/v1/swift-codes/{swift_code_param}")
+async def get_swift_data(swift_code_param: str, db: aiosqlite.Connection = Depends(get_db_connection)):
+    cursor = await db.execute("SELECT * FROM SWIFT_CODES WHERE SWIFT_CODE = ?", (swift_code_param,))
+    main_bank_row = await cursor.fetchone()
+    print(main_bank_row)
+    is_headquarter = main_bank_row[5] == "1"
+    return_value = format_bank_data(main_bank_row, is_headquarter)
 
+    if is_headquarter:
+        branch_pattern = return_value["swiftCode"][:-3] + "%"
+        cursor = await db.execute(
+            "SELECT * FROM SWIFT_CODES WHERE SWIFT_CODE LIKE ? AND ISHEADQUARTER = '0'",
+            (branch_pattern,)
+        )
+        branches_rows = await cursor.fetchall()
+        return_value["branches"] = []
+        for branch in branches_rows:
+            return_value["branches"].append(format_bank_data(branch, False))
+    return return_value
 
 
 @app.get("/v1/swift-codes/country/{countryISO2code}")
@@ -71,7 +52,7 @@ async def say_hello(contryISO2code: str):
         "swiftCodes": []
     }
 
-    for i,bank in enumerate(results):
+    for i, bank in enumerate(results):
         countryISO2 = results[i][0]
         swift_code = results[i][1]
         Name = results[i][2]
@@ -90,6 +71,7 @@ async def say_hello(contryISO2code: str):
 
         })
     return response
+
 
 @app.post("/v1/swift-codes")
 async def insert_swift_data(swift_data: dict):
@@ -117,7 +99,3 @@ async def insert_swift_data(swift_data: dict):
     con.commit()
 
     return {"message": "sukces"}
-
-
-
-

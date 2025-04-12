@@ -4,7 +4,6 @@ from main import app
 import sqlite3
 
 
-
 class TestInsertionEndPoints(unittest.TestCase):
     def test_valid_insertion(self):
 
@@ -31,6 +30,9 @@ class TestInsertionEndPoints(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+
+
+
 
 
 
