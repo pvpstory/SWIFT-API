@@ -1,18 +1,19 @@
-# Dockerfile (Single Stage - Not Recommended for Production)
+# Dockerfile (Single Stage - All dependencies in requirements.txt)
 
 FROM python:3.9-slim
 
 WORKDIR /app
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install ALL dependencies (app + test)
-COPY requirements.txt requirements-test.txt ./
+# Install ALL dependencies from the single requirements.txt file
+COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-test.txt
+    pip install --no-cache-dir -r requirements.txt # Installs everything listed
 
 # Copy ALL code (app + tests + db)
 COPY . .
+# Explicitly copy the DB (good practice, though COPY . . might get it)
 COPY SWIFT-CODES.db ./SWIFT-CODES.db
 
 # Run tests before setting the final CMD

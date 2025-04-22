@@ -1,7 +1,13 @@
-pytest~=8.3.5
-aiosqlite~=0.21.0
-fastapi~=0.115.12
-httpx~=0.28.1
-pydantic~=2.11.3
-starlette~=0.46.1
+# requirements.txt
+
+# Application Dependencies
+fastapi
 uvicorn[standard]
+aiosqlite
+pydantic
+
+# Testing Dependencies
+pytest
+pytest-asyncio
+httpx
+# Add any other test-specific libraries if needed
