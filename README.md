@@ -6,19 +6,6 @@ This project implements a FastAPI application providing endpoints to manage SWIF
 
 *   Docker Desktop installed and running on your machine.
 
-## Project Structure
-
-SWIFT-API/
-├── main.py # FastAPI application code
-├── SWIFT-CODES.db # SQLite database file (initial data)
-├── scripts/
-│ └── populateDB.py # convert SWIFT-CODES.csv into populated sqlite db
-├── Dockerfile # Instructions to build the Docker image
-├── requirements.txt # Python dependencies
-├── tests/ # Unit and integration tests (optional to include)
-│ └── ...
-└── README.md # These instructions
-└── # other
 
 ## Running the Application
 
@@ -30,8 +17,11 @@ SWIFT-API/
     docker build -t swift-api .
     ```
     *(This will build the Docker image using the `Dockerfile` and tag it as `swift-api`)*
+    *   **Important:** As part of the build process, the tests located in the `tests/` directory will be executed using `pytest` inside the container environment.
+    *   **If any tests fail, the `docker build` command will exit with an error, and the image will not be built successfully.** This ensures the image is only created if the tests pass.
+    *   Tag the image as `swift-api`.
 
-3.  **Run the Docker Container:**
+4.  **Run the Docker Container:**
     Once the image is built, run the container with this command:
     ```bash
     docker run -d --name swift-api-container -p 8080:8000 swift-api
@@ -41,7 +31,7 @@ SWIFT-API/
     *   `-p 8080:8000`: Maps port 8080 on your local machine (host) to port 8000 inside the container (where the FastAPI app runs).
     *   `swift-api`: Specifies the image to use.
 
-4.  **Access the API:**
+5.  **Access the API:**
     The API should now be accessible on your local machine at port 8080:
     *   **Swagger UI (Interactive Docs):** [http://localhost:8080/docs](http://localhost:8080/docs)
     *   **Example Endpoint (using curl):**
